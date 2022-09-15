@@ -22,249 +22,271 @@ describe("Token contract", function () {
 
     const TOKEN_A_AMOUNT = ethers.utils.parseEther("1000");
     const AMOUNT_IN_MAX = ethers.utils.parseEther("1000000");
-    const amountIn = ethers.utils.parseEther("100");
+    const amountIn = ethers.utils.parseEther("10");
     const amountOut = ethers.utils.parseEther("1");
-    const amountInq = ethers.utils.parseEther("100");
+    const amountInq = ethers.utils.parseEther("1000");
     const TOKEN_B_AMOUNT = ethers.utils.parseEther("1000");
     const ETH_AMOUNT = ethers.utils.parseEther("10");
+    const EXCEED_AMOUNT_ETH = ethers.utils.parseEther("1005");
+    const EXCEED_AMOUNT_TOKEN = ethers.utils.parseEther("1000005");
+
+    const TOKEN_A_AMOUNTU = 10000;
+    const TOKEN_B_AMOUNTU = 10000;
+
+    const TOKEN_A_AMOUNTA = 100;
+    const TOKEN_B_AMOUNTA = 100;
+
+
+    async function _addLiquidity(){
+        await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
+        await tokenB.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
+        await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,tokenB.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[0].address, 1764541741);
+    };
+    async function _addLiquiditytxble(){
+        await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
+        await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
+        await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,taxableToken.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[6].address, 1764541741);
+
+    };
+    async function _addLiquidityETH(){
+        await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
+        await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
+        // await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
+    };
+    async function _addLiquidityETHtxble(){
+        await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
+        await uniswapV2Router.connect(signer[0]).addLiquidityETH(taxableToken.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
+    };
+    describe("UniswapV2",async()=>{
+            beforeEach(async()=>{
+            signer = await ethers.getSigners();
+
+            lpTokenContract = new ethers.Contract(lpTokenAddress, lpTokenAbi,signer[0]);
+
+            const GetInit = await ethers.getContractFactory("CalHash");
+            getInit = await GetInit.deploy();
+
+            initHash = await getInit.connect(signer[0]).getInitHash();
+
+            const LpToken = await ethers.getContractFactory("UniswapV2ERC20");
+            lpToken = await LpToken.deploy();
+
+            const WETH = await ethers.getContractFactory("WETH9");
+            weth = await WETH.deploy();
     
-describe("UniswapV2",async()=>{
-        beforeEach(async()=>{
-        signer = await ethers.getSigners();
+            const UniswapV2Factory = await ethers.getContractFactory("UniswapV2Factory");
+            uniswapV2Factory = await UniswapV2Factory.connect(signer[0]).deploy(signer[0].address);
 
-        lpTokenContract = new ethers.Contract(lpTokenAddress, lpTokenAbi,signer[0]);
+            const UniswapV2Pair = await ethers.getContractFactory("UniswapV2Pair");
+            uniswapV2Pair = await UniswapV2Pair.connect(signer[0]).deploy();
+    
+            const UniswapV2Router = await ethers.getContractFactory("UniswapV2Router02");
+            uniswapV2Router = await UniswapV2Router.connect(signer[0]).deploy(uniswapV2Factory.address,weth.address, signer[4].address);
+    
+            const TokenA = await ethers.getContractFactory("TokenA");
+            tokenA = await TokenA.connect(signer[0]).deploy();
+    
+            const TokenB = await ethers.getContractFactory("TokenB");
+            tokenB = await TokenB.connect(signer[0]).deploy();
 
-        const GetInit = await ethers.getContractFactory("CalHash");
-        getInit = await GetInit.deploy();
+            const TaxableToken = await ethers.getContractFactory("taxableToken");
+            taxableToken = await TaxableToken.connect(signer[0]).deploy();
+            
+            });
 
-        initHash = await getInit.connect(signer[0]).getInitHash();
-
-        const LpToken = await ethers.getContractFactory("UniswapV2ERC20");
-        lpToken = await LpToken.deploy();
-
-        const WETH = await ethers.getContractFactory("WETH9");
-        weth = await WETH.deploy();
-  
-        const UniswapV2Factory = await ethers.getContractFactory("UniswapV2Factory");
-        uniswapV2Factory = await UniswapV2Factory.connect(signer[0]).deploy(signer[0].address);
-
-        const UniswapV2Pair = await ethers.getContractFactory("UniswapV2Pair");
-        uniswapV2Pair = await UniswapV2Pair.connect(signer[0]).deploy();
-  
-        const UniswapV2Router = await ethers.getContractFactory("UniswapV2Router02");
-        uniswapV2Router = await UniswapV2Router.connect(signer[0]).deploy(uniswapV2Factory.address,weth.address, signer[4].address);
-  
-        const TokenA = await ethers.getContractFactory("TokenA");
-        tokenA = await TokenA.connect(signer[0]).deploy();
-  
-        const TokenB = await ethers.getContractFactory("TokenB");
-        tokenB = await TokenB.connect(signer[0]).deploy();
-
-        const TaxableToken = await ethers.getContractFactory("taxableToken");
-        taxableToken = await TaxableToken.connect(signer[0]).deploy();
+            describe("Functions",async()=>{
+                it("addliquidity function", async function () {
+                    console.log("initHash: ",initHash);
+                    await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
+                    await tokenB.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
+                    await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,tokenB.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[0].address, 1764541741);
         
-        });
-
-        describe("UniswapV2",async()=>{
-            it("addliquidity function", async function () {
-                // console.log("initHash: ",initHash);
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await tokenB.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,tokenB.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[0].address, 1764541741);
-    
-            });
-            it("addliquidityETH function", async function () {
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
-            });
-    
-    
-            it("swapExactTokensForTokens function", async function () {
-                
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await tokenB.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,tokenB.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[0].address, 1764541741);
-    
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
-                let iniBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let iniBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
-                await uniswapV2Router.connect(signer[0]).swapExactTokensForTokens(amountIn,1,[tokenA.address,tokenB.address],signer[0].address, 1764541741);
-                let fnlBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let fnlBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
-                expect(iniBalT1).to.be.greaterThan(fnlBalT1);
-                expect(fnlBalT2).to.be.greaterThan(iniBalT2);
-                expect(fnlBalT3).to.equal(0.3);
-                // console.log(iniBalT1,iniBalT2,fnlBalT1,fnlBalT2,fnlBalT3);
-                
-            });
-    
-            it("swapTokensForExactTokens function", async function () {
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await tokenB.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,tokenB.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[0].address, 1764541741);
-    
-                let iniBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let iniBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
-                await uniswapV2Router.connect(signer[0]).swapTokensForExactTokens(amountIn,TOKEN_A_AMOUNT,[tokenA.address,tokenB.address],signer[0].address, 1764541741);
-                let fnlBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let fnlBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
-    
-                expect(iniBalT1).to.be.greaterThan(fnlBalT1);
-                expect(fnlBalT2).to.be.greaterThan(iniBalT2);
-                expect(fnlBalT3).to.equal(0.03039421294185587);
-            });
-    
-            it("swapExactETHForTokens function", async function () {
-                
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                
-                await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
-                let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let iniBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                await uniswapV2Router.connect(signer[0]).swapExactETHForTokens(1,[weth.address,tokenA.address],signer[0].address, 1764541741,{value:amountIn});
-    
-                let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let fnlBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await provider.getBalance(signer[4].address))/1e18);
-    
-                expect(iniBalEther).to.be.greaterThan(fnlBalEther);
-                expect(iniBalToken).to.be.lessThan(fnlBalToken);
-                expect(fnlBalT3).to.equal(10000.03);
-                // console.log(fnlBalT3);
-                // console.log(`T2${iniBalT2,fnlBalT2}`);
-            });
-            it("swapTokensForExactETH function", async function () {
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
-    
-                let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let iniBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).swapTokensForExactETH(amountOut,TOKEN_A_AMOUNT,[tokenA.address,weth.address],signer[0].address,1764541741);
-                let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let fnlBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
-    
-                expect(iniBalToken).to.be.greaterThan(fnlBalToken);
-                expect(iniBalEther).to.be.lessThan(fnlBalEther);
-                expect(fnlBalT3).to.equal(0.3343363423604146);
+                });
+                it("addliquidityETH function", async function () {
+                    await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
+                    await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
+                });
         
-            });
-    
-            it("swapExactTokensForETH function", async function () {
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
-    
-                let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let iniBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
-                await uniswapV2Router.connect(signer[0]).swapExactTokensForETH(amountIn,1,[tokenA.address,weth.address],signer[0].address,1764541741);
-    
-                let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let fnlBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
-    
-                expect(iniBalToken).to.be.greaterThan(fnlBalToken);
-                expect(iniBalEther).to.be.lessThan(fnlBalEther);
-                expect(fnlBalT3).to.equal(0.03);
-            });
-    
-            it("swapETHForExactTokens function", async function () {
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
-    
-                let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let iniBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                // await tokenA.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
-                await uniswapV2Router.connect(signer[0]).swapETHForExactTokens(amountOut,[weth.address,tokenA.address],signer[0].address, 1764541741,{value:amountIn});
-    
-                let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let fnlBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await provider.getBalance(signer[4].address))/1e18);
-    
-                expect(iniBalToken).to.be.lessThan(fnlBalToken);
-                expect(iniBalEther).to.be.greaterThan(fnlBalEther);
-                expect(fnlBalT3).to.equal(10000.00003012039);
-    
-            });
-    
-            it("swapExactTokensForTokensSupportingFeeOnTransferTokens", async function () {
-                
-    
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,taxableToken.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[6].address, 1764541741);
-                
-                let iniBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let iniBalT2 = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
-                
-                await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn,1,[tokenA.address,taxableToken.address],signer[0].address, 1764541741);
-                
-                let fnlBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
-                let fnlBalT2 = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
-                // console.log(fnlBalT3);
-                expect(iniBalT1).to.be.greaterThan(fnlBalT1);
-                expect(fnlBalT2).to.be.greaterThan(iniBalT2);
-                expect(fnlBalT3).to.equal(0.3);
-    
-            });
-    
-            it.only("swapExactETHForTokensSupportingFeeOnTransferTokens", async function () {
-    
-    
-                await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                
-                await uniswapV2Router.connect(signer[0]).addLiquidityETH(taxableToken.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
-                
-                let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let iniBalToken = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
-                // console.log(`reserve${await uniswapV2Pair.getReserves()}`);
-                // await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                // await uniswapV2Router.connect(signer[0]).addLiquidityETH(taxableToken.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
-                // console.log(`reserve${await uniswapV2Pair.getReserves()}`);
-                await uniswapV2Router.connect(signer[0]).swapExactETHForTokensSupportingFeeOnTransferTokens(1,[weth.address,taxableToken.address],signer[0].address, 1764541741,{value:amountIn}); 
-                
-                let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let fnlBalToken = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await provider.getBalance(signer[4].address))/1e18);
-                // console.log(iniBalT1,fnlBalT1);
-                // console.log(`--${iniBalT2,fnlBalT2}`);
-                // await expect(fnlBalT2).to.be.greaterThan(iniBalT2);
-                // await expect(iniBalT1).to.be.greaterThan(fnlBalT1);
-                expect(iniBalToken).to.be.lessThan(fnlBalToken);
-                expect(iniBalEther).to.be.greaterThan(fnlBalEther);
-                expect(fnlBalT3).to.equal(10000.3);
-                console.log((parseInt(await provider.getBalance(signer[7].address)))/1e18);
+        
+                it.only("swapExactTokensForTokens function", async function () {
+                    
+                    // await _addLiquidity();
+        
+                    // await tokenA.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
+                    // // let iniBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    // // let iniBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
+                    // await uniswapV2Router.connect(signer[0]).swapExactTokensForTokens(amountIn,1,[tokenA.address,tokenB.address],signer[0].address, 1764541741);
+                    await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
+                    await tokenB.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
+                    await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,tokenB.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[0].address, 1764541741);
+                    
+                    await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
+                    let iniBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let iniBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
+                    await uniswapV2Router.connect(signer[0]).swapExactTokensForTokens(amountIn,1,[tokenA.address,tokenB.address],signer[0].address, 1764541741);
+                    let fnlBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
+                    // expect(iniBalT1).to.be.greaterThan(fnlBalT1);
+                    // expect(fnlBalT2).to.be.greaterThan(iniBalT2);
+                    // expect(fnlBalT3).to.equal(0.3);
+                    // console.log(iniBalT1,iniBalT2,fnlBalT1,fnlBalT2,fnlBalT3);
+                    
+                });
+        
+                it("swapTokensForExactTokens function", async function () {
+                    await _addLiquidity();
+        
+                    let iniBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let iniBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
+                    await tokenA.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
+                    await uniswapV2Router.connect(signer[0]).swapTokensForExactTokens(amountIn,TOKEN_A_AMOUNT,[tokenA.address,tokenB.address],signer[0].address, 1764541741);
+                    let fnlBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT2 = (parseInt(await tokenB.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
+        
+                    expect(iniBalT1).to.be.greaterThan(fnlBalT1);
+                    expect(fnlBalT2).to.be.greaterThan(iniBalT2);
+                    expect(fnlBalT3).to.equal(0.3343363423604146);
+                });
+        
+                it("swapExactETHForTokens function", async function () {
+                    
+                    await _addLiquidityETH();
+                    let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let iniBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    await uniswapV2Router.connect(signer[0]).swapExactETHForTokens(1,[weth.address,tokenA.address],signer[0].address, 1764541741,{value:amountIn});
+        
+                    let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let fnlBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await provider.getBalance(signer[4].address))/1e18);
+        
+                    expect(iniBalEther).to.be.greaterThan(fnlBalEther);
+                    expect(iniBalToken).to.be.lessThan(fnlBalToken);
+                    expect(fnlBalT3).to.equal(10000.3);
+                    // console.log(fnlBalT3);
+                    // console.log(`T2${iniBalT2,fnlBalT2}`);
+                });
+                it("swapTokensForExactETH function", async function () {
+                    await _addLiquidityETH();
+        
+                    let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let iniBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
+                    await uniswapV2Router.connect(signer[0]).swapTokensForExactETH(amountOut,TOKEN_A_AMOUNT,[tokenA.address,weth.address],signer[0].address,1764541741);
+                    let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let fnlBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
+        
+                    expect(iniBalToken).to.be.greaterThan(fnlBalToken);
+                    expect(iniBalEther).to.be.lessThan(fnlBalEther);
+                    expect(fnlBalT3).to.equal(0.3343363423604146);
+            
+                });
+        
+                it("swapExactTokensForETH function", async function () {
 
-                console.log(iniBalToken,fnlBalToken,iniBalEther,fnlBalEther,fnlBalT3);
-            });
-    
-            it("swapExactTokensForETHSupportingFeeOnTransferTokens", async function () {
-                await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
-                await uniswapV2Router.connect(signer[0]).addLiquidityETH(taxableToken.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
-    
-                let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let iniBalToken = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
-                await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
-                await uniswapV2Router.connect(signer[0]).swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn,1,[taxableToken.address,weth.address],signer[0].address,1764541741);
-    
-                let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
-                let fnlBalToken = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
-                let fnlBalT3 = (parseInt(await taxableToken.balanceOf(signer[4].address))/1e18);
-    
-                expect(iniBalToken).to.be.greaterThan(fnlBalToken);
-                expect(iniBalEther).to.be.lessThan(fnlBalEther);
-                expect(fnlBalT3).to.equal(0.27);
-                // console.log(`${}`)
-            });
+                    await _addLiquidityETH();
+                    let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let iniBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    await tokenA.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
+                    await uniswapV2Router.connect(signer[0]).swapExactTokensForETH(amountIn,1,[tokenA.address,weth.address],signer[0].address,1764541741);
+        
+                    let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let fnlBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
+        
+                    expect(iniBalToken).to.be.greaterThan(fnlBalToken);
+                    expect(iniBalEther).to.be.lessThan(fnlBalEther);
+                    expect(fnlBalT3).to.equal(0.3);
+                });
+        
+                it("swapETHForExactTokens function", async function () {
+
+                    await _addLiquidityETH();
+                    let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let iniBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    // await tokenA.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
+                    await uniswapV2Router.connect(signer[0]).swapETHForExactTokens(amountOut,[weth.address,tokenA.address],signer[0].address, 1764541741,{value:amountIn});
+        
+                    let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let fnlBalToken = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await provider.getBalance(signer[4].address))/1e18);
+        
+                    expect(iniBalToken).to.be.lessThan(fnlBalToken);
+                    expect(iniBalEther).to.be.greaterThan(fnlBalEther);
+                    expect(fnlBalT3).to.equal(10000.300030120392);
+        
+                });
+        
+                it("swapExactTokensForTokensSupportingFeeOnTransferTokens", async function () {
+                    
+        
+                    await _addLiquiditytxble();
+                    
+                    let iniBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let iniBalT2 = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
+                    
+                    await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
+                    await uniswapV2Router.connect(signer[0]).swapExactTokensForTokensSupportingFeeOnTransferTokens(amountIn,1,[tokenA.address,taxableToken.address],signer[0].address, 1764541741);
+                    
+                    let fnlBalT1 = (parseInt(await tokenA.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT2 = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await tokenA.balanceOf(signer[4].address))/1e18);
+                    // console.log(fnlBalT3);
+                    expect(iniBalT1).to.be.greaterThan(fnlBalT1);
+                    expect(fnlBalT2).to.be.greaterThan(iniBalT2);
+                    expect(fnlBalT3).to.equal(0.3);
+        
+                });
+        
+                it("swapExactETHForTokensSupportingFeeOnTransferTokens", async function () {
+                    await _addLiquidityETHtxble();
+                    
+                    let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let iniBalToken = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
+                    await uniswapV2Router.connect(signer[0]).swapExactETHForTokensSupportingFeeOnTransferTokens(1,[weth.address,taxableToken.address],signer[0].address, 1764541741,{value:amountIn}); 
+                    
+                    let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let fnlBalToken = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await provider.getBalance(signer[4].address))/1e18);
+
+                    expect(iniBalToken).to.be.lessThan(fnlBalToken);
+                    expect(iniBalEther).to.be.greaterThan(fnlBalEther);
+                    expect(fnlBalT3).to.equal(10000.600030120391);
+                });
+        
+                it("swapExactTokensForETHSupportingFeeOnTransferTokens", async function () {
+                    await _addLiquidityETHtxble();
+                    
+                    let iniBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let iniBalToken = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
+                    await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
+                    await uniswapV2Router.connect(signer[0]).swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn,1,[taxableToken.address,weth.address],signer[0].address,1764541741);
+        
+                    let fnlBalEther = (parseInt(await provider.getBalance(signer[0].address))/1e18);
+                    let fnlBalToken = (parseInt(await taxableToken.balanceOf(signer[0].address))/1e18);
+                    let fnlBalT3 = (parseInt(await taxableToken.balanceOf(signer[4].address))/1e18);
+        
+                    expect(iniBalToken).to.be.greaterThan(fnlBalToken);
+                    expect(iniBalEther).to.be.lessThan(fnlBalEther);
+                    expect(fnlBalT3).to.equal(0.27);
+                });
+                describe("swapExactTokensForETHSupportingFeeOnTransferTokens revert cases",async()=>{
+                    it("revert if Only one path is provided", async function () {
+                        await _addLiquidityETHtxble();
+                        
+                        await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
+                        await expect(uniswapV2Router.connect(signer[0]).swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn,1,[taxableToken.address],signer[0].address,1764541741)).to.be.revertedWith("UniswapV2Router: INVALID_PATH");
+                    });
+                    it("revert if weth address is provided as path[0]", async function () {
+                        await _addLiquidityETHtxble();
+                        
+                        await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
+                        await expect(uniswapV2Router.connect(signer[0]).swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn,1,[weth.address,taxableToken.address],signer[0].address,1764541741)).to.be.revertedWith("UniswapV2Router: INVALID_PATH");
+                    });
+            });  
         });
     });
-      
-
-        })
+});
         

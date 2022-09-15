@@ -384,6 +384,8 @@ contract UniswapV2Router02 {
             remainingAmount
         );
 
+        // console.log(amounts[0]);
+
         TransferHelper.safeTransferFrom(path[0], msg.sender, admin, fees); ///////////
 
         _swap(amounts, path, to);
@@ -657,7 +659,7 @@ function swapExactETHForTokensSupportingFeeOnTransferTokens(
 
         _swapSupportingFeeOnTransferTokens(path, to);
         require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >=
+            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >=                       ///remaining
                 amountOutMin,
             "UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT"
         );

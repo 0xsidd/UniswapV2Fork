@@ -86,6 +86,8 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
         blockTimestampLast = blockTimestamp;
+        console.log("reserve0",reserve0);
+        console.log("reserve1",reserve1);
         emit Sync(reserve0, reserve1);
     }
 
@@ -119,10 +121,9 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         uint balance1 = IERC20(token1).balanceOf(address(this));
         uint amount0 = balance0.sub(_reserve0);
         uint amount1 = balance1.sub(_reserve1);
-
         bool feeOn = _mintFee(_reserve0, _reserve1);
-        // bool feeOn = true;
-        // console.log(feeOn); //////////////////////////////////////////////////
+
+
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
             liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
@@ -208,16 +209,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         // uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
         uint balance0Adjusted = balance0.mul(1000); //    .sub(amount0In.mul(3));
         uint balance1Adjusted = balance1.mul(1000);//.sub(amount1In.mul(3));
-        
 
-        // console.log('balance0Adjusted',balance0Adjusted);
-        // console.log('balance1Adjusted',balance1Adjusted);
-
-        // console.log('_reserve0',_reserve0);
-        // console.log('_reserve1',_reserve1);
-
-        // console.log('balance0Adjusted.mul(balance1Adjusted)',balance0Adjusted.mul(balance1Adjusted));
-        // console.log('uint(_reserve0).mul(_reserve1).mul(1000**2)',uint(_reserve0).mul(_reserve1).mul(1000**2));
 
         require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K'); //////////////////////////////CHANGE FROM /////////////////
         }
