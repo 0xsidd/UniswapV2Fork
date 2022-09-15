@@ -20,6 +20,10 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  module.exports = {
   solidity: "0.8.4",
   networks: {
+    goerli: {
+      url: `https://eth-goerli.g.alchemy.com/v2/bKAcOsXTqHEINi8v0vhhgUIgRO3MyNPO`,
+      accounts: ['1aa00af2249c90ddef8565fb073e682e361699fd802b46b2efc867198ffbc71c']
+    },
     hardhat: {
       allowUnlimitedContractSize: true,
     },
@@ -28,6 +32,12 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     currency: 'CHF',
     gasPrice: 21
   },
+  // networks: {
+    // goerli: {
+    //   url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+    //   accounts: [GOERLI_PRIVATE_KEY]
+    // }
+  // }
   // defaultNetwork: 'localhost',
   // networks: {
   //   localhost: {

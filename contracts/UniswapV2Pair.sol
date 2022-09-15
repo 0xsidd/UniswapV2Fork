@@ -21,6 +21,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
     address public token0;
     address public token1;
 
+
     uint112 private reserve0;           // uses single storage slot, accessible via getReserves
     uint112 private reserve1;           // uses single storage slot, accessible via getReserves
     uint32  private blockTimestampLast; // uses single storage slot, accessible via getReserves
@@ -96,10 +97,12 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         if (feeOn) {
             if (_kLast != 0) {
                 uint rootK = Math.sqrt(uint(_reserve0).mul(_reserve1));
+                // console.log("rootK",rootK);
                 uint rootKLast = Math.sqrt(_kLast);
+                // console.log("rootKLast: ",rootKLast);
                 if (rootK > rootKLast) {
-                    uint numerator = totalSupply.mul(rootK.sub(rootKLast).mul(9999999)); ///////////////////////////////
-                    uint denominator = rootK.mul(1).add(rootKLast.mul(9999999));
+                    uint numerator = totalSupply.mul(rootK.sub(rootKLast));
+                    uint denominator = rootK.mul(0).add(rootKLast);
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }
@@ -119,7 +122,7 @@ contract UniswapV2Pair is UniswapV2ERC20 {
 
         bool feeOn = _mintFee(_reserve0, _reserve1);
         // bool feeOn = true;
-        console.log(feeOn); //////////////////////////////////////////////////
+        // console.log(feeOn); //////////////////////////////////////////////////
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
             liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
@@ -172,23 +175,50 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         address _token1 = token1;
         require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
         if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-        if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
+
+        if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens; Difference between Balance1 and Reserve1 created
+        
         if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
+
         balance0 = IERC20(_token0).balanceOf(address(this));
+        // console.log('balance0: ',balance0);
+
         balance1 = IERC20(_token1).balanceOf(address(this));
+        // console.log('balance1: ',balance1);
         }
-        uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
+        // uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
+
+        uint amount0In; 
+
+        if(balance0 > _reserve0 - amount0Out) {  // balance0 = 109.97; _reserve0 = 100; amount0Out = 0
+
+            amount0In = balance0 - (_reserve0 - amount0Out); // amoun0In = 109.97 - 100 - 0 = 9.97
+
+        } else {
+
+            amount0In = 0;
+        }
+
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
-        console.log('amount0In',amount0In);
-        console.log('amount1In',amount1In);
+        // console.log('amount0In',amount0In);
+        // console.log('amount1In',amount1In);
+
         require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-        uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
-        uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
-        console.log('balance0Adjusted',balance0Adjusted);
-        console.log('balance1Adjusted',balance1Adjusted);
-        console.log('_reserve0',_reserve0);
-        console.log('_reserve1',_reserve1);
+        // uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
+        uint balance0Adjusted = balance0.mul(1000); //    .sub(amount0In.mul(3));
+        uint balance1Adjusted = balance1.mul(1000);//.sub(amount1In.mul(3));
+        
+
+        // console.log('balance0Adjusted',balance0Adjusted);
+        // console.log('balance1Adjusted',balance1Adjusted);
+
+        // console.log('_reserve0',_reserve0);
+        // console.log('_reserve1',_reserve1);
+
+        // console.log('balance0Adjusted.mul(balance1Adjusted)',balance0Adjusted.mul(balance1Adjusted));
+        // console.log('uint(_reserve0).mul(_reserve1).mul(1000**2)',uint(_reserve0).mul(_reserve1).mul(1000**2));
+
         require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K'); //////////////////////////////CHANGE FROM /////////////////
         }
 

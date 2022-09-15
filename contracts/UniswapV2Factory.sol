@@ -13,6 +13,7 @@ contract UniswapV2Factory {
     address public feeToSetter;
 
     mapping(address => mapping(address => address)) public getPair;
+
     address[] public allPairs;
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
@@ -40,9 +41,9 @@ contract UniswapV2Factory {
                 hex'ff',
                 address(this),
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'0fdc1f4f8ede0c0eb7dce8ded30832f1b8125828bea23ceb466d97f473d8beed' // init code hash
+                hex'649ca44cd9b27a7dc33f8309d983bca62f4d272b28fc8b76bfda1ef42cde8f01' // init code hash
             )))));
-            console.log(pair);
+            // console.log("Pair Contract Address:", pair);
         IUniswapV2Pair(pair).initialize(token0, token1);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction

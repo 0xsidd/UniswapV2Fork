@@ -50,9 +50,11 @@ library UniswapV2Library {
     function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) internal pure returns (uint amountOut) {   //price
         require(amountIn > 0, 'UniswapV2Library: INSUFFICIENT_INPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY');
+
         uint amountInWithFee = amountIn.mul(997);
         uint numerator = amountInWithFee.mul(reserveOut);
         uint denominator = reserveIn.mul(1000).add(amountInWithFee);
+        
         amountOut = numerator / denominator;
         // amountOut = amountIn / reserveIn;
                          /////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,34 +64,35 @@ library UniswapV2Library {
     function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) internal pure returns (uint amountIn) {
         require(amountOut > 0, 'UniswapV2Library: INSUFFICIENT_OUTPUT_AMOUNT');
         require(reserveIn > 0 && reserveOut > 0, 'UniswapV2Library: INSUFFICIENT_LIQUIDITY');
+        
         uint numerator = reserveIn.mul(amountOut).mul(1000);
         uint denominator = reserveOut.sub(amountOut).mul(997);
+        
         amountIn = (numerator / denominator).add(1);
     }
 
     // performs chained getAmountOut calculations on any number of pairs
     function getAmountsOut(address factory, uint amountIn, address[] memory path) internal view returns (uint[] memory amounts) {   /////////////////
         require(path.length >= 2, 'UniswapV2Library: INVALID_PATH');
+
         amounts = new uint[](path.length);
         amounts[0] = amountIn;
+        
         for (uint i; i < path.length - 1; i++) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
             amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
-            // console.log(reserveIn);
-            // console.log(reserveOut);
-            // console.log(amounts[0]);
-            // console.log(amounts[1]);
         }
     }
 
     // performs chained getAmountIn calculations on any number of pairs
     function getAmountsIn(address factory, uint amountOut, address[] memory path) internal view returns (uint[] memory amounts) {
         require(path.length >= 2, 'UniswapV2Library: INVALID_PATH');
+
         amounts = new uint[](path.length);
         amounts[amounts.length - 1] = amountOut;
+        
         for (uint i = path.length - 1; i > 0; i--) {
             (uint reserveIn, uint reserveOut) = getReserves(factory, path[i - 1], path[i]);
-           
             
             amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
         }
