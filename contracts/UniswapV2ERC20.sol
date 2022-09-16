@@ -3,6 +3,7 @@ pragma solidity ^0.8.4;
 
 import './interfaces/IUniswapV2ERC20.sol';
 import './libraries/SafeMath.sol';
+import "hardhat/console.sol";
 
 
 contract UniswapV2ERC20 {
@@ -90,6 +91,8 @@ contract UniswapV2ERC20 {
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
+        console.log("recovered address",recoveredAddress);
+        console.log("owner",owner);
         require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }

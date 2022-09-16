@@ -41,7 +41,7 @@ contract UniswapV2Factory {
                 hex'ff',
                 address(this),
                 keccak256(abi.encodePacked(token0, token1)),
-                hex'cedc66f2a9a79e950ca6b729f5084eb1622d5c4030f1537e9c44508204e4bfd6' // init code hash
+                hex'8b5b19c88e8680fb674e03ebe85b9ddb4f6cb2f56671d97376f9fb96ca4df3bd' // init code hash
             )))));
             // console.log("Pair Contract Address:", pair);
         IUniswapV2Pair(pair).initialize(token0, token1);
