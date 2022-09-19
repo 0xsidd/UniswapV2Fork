@@ -86,8 +86,8 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
         blockTimestampLast = blockTimestamp;
-        console.log("reserve0",reserve0);
-        console.log("reserve1",reserve1);
+        // console.log("reserve0",reserve0);
+        // console.log("reserve1",reserve1);
         emit Sync(reserve0, reserve1);
     }
 
@@ -138,11 +138,11 @@ contract UniswapV2Pair is UniswapV2ERC20 {
             
            _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
-            console.log("totalSupply",_totalSupply);
-            console.log("reserve0",_reserve0);
-            console.log("balance0",balance0);
+            // console.log("totalSupply",_totalSupply);
+            // console.log("reserve0",_reserve0);
+            // console.log("balance0",balance0);
             liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
-            console.log("liquidity",liquidity);
+            // console.log("liquidity",liquidity);
         }
         require(liquidity > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);

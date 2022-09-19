@@ -111,7 +111,7 @@ contract UniswapV2Router02 {
             amountBMin
         );
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
-        console.log('pair',pair);
+        // console.log('pair',pair);
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
         TransferHelper.safeTransferFrom(tokenB, msg.sender, pair, amountB);
         liquidity = IUniswapV2Pair(pair).mint(to);
@@ -228,7 +228,6 @@ contract UniswapV2Router02 {
     ) external virtual returns (uint256 amountA, uint256 amountB) {
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
         uint256 value = approveMax ? type(uint256).max : liquidity;
-        console.log(pair);
         IUniswapV2Pair(pair).permit(
             msg.sender,
             address(this),
@@ -238,7 +237,7 @@ contract UniswapV2Router02 {
             r,
             s
         );
-        console.log("done");
+        // console.log("done");
         // (amountA, amountB) = removeLiquidity(
         //     tokenA,
         //     tokenB,

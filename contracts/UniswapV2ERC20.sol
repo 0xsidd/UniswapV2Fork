@@ -27,7 +27,7 @@ contract UniswapV2ERC20 {
     constructor() {
         uint chainId;
         assembly {
-            chainId := chainId
+            chainId := chainid()
         }
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
@@ -96,6 +96,7 @@ contract UniswapV2ERC20 {
         // console.log("DIGEST: ",digest);
         // console.log("recovered address",recoveredAddress);
         // console.log("owner",owner);
+        // console.log("chainId",block.chainid);
         require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }
