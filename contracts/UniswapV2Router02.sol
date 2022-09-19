@@ -227,6 +227,7 @@ contract UniswapV2Router02 {
         bytes32 s
     ) external virtual returns (uint256 amountA, uint256 amountB) {
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
+        // console.log(pair);
         uint256 value = approveMax ? type(uint256).max : liquidity;
         IUniswapV2Pair(pair).permit(
             msg.sender,

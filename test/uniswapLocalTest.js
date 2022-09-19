@@ -155,12 +155,6 @@ describe("Token contract", function () {
                     await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
                     await uniswapV2Router.connect(signer[0]).addLiquidityETH(tokenA.address,TOKEN_A_AMOUNT,1,ETH_AMOUNT,signer[0].address,1764541741,{value:ETH_AMOUNT});
                 });
-                it("removeLiquidity function", async function () {
-                  await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
-                  await tokenB.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_B_AMOUNT);
-                  await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,tokenB.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[0].address, 1764541741);
-              });
-
                 it("removeLiquidityPermit function", async function () {
                   // console.log(initHash);
                   await tokenA.connect(signer[0]).approve(uniswapV2Router.address,TOKEN_A_AMOUNT);
@@ -168,6 +162,7 @@ describe("Token contract", function () {
                   await uniswapV2Router.connect(signer[0]).addLiquidity(tokenA.address,tokenB.address,TOKEN_A_AMOUNT,TOKEN_B_AMOUNT,1,1,signer[0].address, 1764541741);
 
                   let bal = (((await lpTokenContract.balanceOf(signer[0].address))))/1e18;
+                  // let bal = 20;
                   const { v, r, s } = await getPermitSignature(
                         signer[0],
                         lpTokenContract,
@@ -177,7 +172,6 @@ describe("Token contract", function () {
                       );
                   await uniswapV2Router.connect(signer[0]).removeLiquidityWithPermit(tokenA.address,tokenB.address,bal,1,1,signer[0].address,1764541741,false,v,r,s);  
                 });
-        
         
                 it("swapExactTokensForTokens function", async function () {
                     
@@ -232,6 +226,7 @@ describe("Token contract", function () {
                     // console.log(fnlBalT3);
                     // console.log(`T2${iniBalT2,fnlBalT2}`);
                 });
+
                 it("swapTokensForExactETH function", async function () {
                     await _addLiquidityETH();
         
@@ -336,32 +331,7 @@ describe("Token contract", function () {
                     expect(iniBalToken).to.be.greaterThan(fnlBalToken);
                     expect(iniBalEther).to.be.lessThan(fnlBalEther);
                     expect(fnlBalT3).to.equal(0.027);
-                });
-          // describe("swapExactTokensForETHSupportingFeeOnTransferTokens revert cases",async()=>{
-          //           it("revert if Only one path is provided", async function () {
-          //               await _addLiquidityETHtxble();
-                        
-          //               await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
-          //               await expect(uniswapV2Router.connect(signer[0]).swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn,1,[taxableToken.address],signer[0].address,1764541741)).to.be.revertedWith("UniswapV2Router: INVALID_PATH");
-          //           });
-          //           it("revert if weth address is provided as path[0]", async function () {
-          //               await _addLiquidityETHtxble();
-                        
-          //               await taxableToken.connect(signer[0]).approve(uniswapV2Router.address,amountInq);
-          //               await expect(uniswapV2Router.connect(signer[0]).swapExactTokensForETHSupportingFeeOnTransferTokens(amountIn,1,[weth.address,taxableToken.address],signer[0].address,1764541741)).to.be.revertedWith("UniswapV2Router: INVALID_PATH");
-          //           });
-          // });  
+                }); 
         });
     });
 });
-
-
-// const { v, r, s } = await getPermitSignature(
-//     signer[0],
-//     tokenA,
-//     uniswapV2Router.address,
-//     amountIn,
-//     1764541741
-//   )
-
-//   console.log(v,r,s);
