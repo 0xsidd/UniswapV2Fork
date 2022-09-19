@@ -90,9 +90,12 @@ contract UniswapV2ERC20 {
                 keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
             )
         );
+
+        
         address recoveredAddress = ecrecover(digest, v, r, s);
-        console.log("recovered address",recoveredAddress);
-        console.log("owner",owner);
+        // console.log("DIGEST: ",digest);
+        // console.log("recovered address",recoveredAddress);
+        // console.log("owner",owner);
         require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }

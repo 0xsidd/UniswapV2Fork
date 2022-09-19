@@ -26,7 +26,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     // },
     hardhat: {
       allowUnlimitedContractSize: true,
-      chainId: 0
+      // chainId: 0
     },
   },
   gasReporter: {

@@ -238,15 +238,16 @@ contract UniswapV2Router02 {
             r,
             s
         );
-        (amountA, amountB) = removeLiquidity(
-            tokenA,
-            tokenB,
-            liquidity,
-            amountAMin,
-            amountBMin,
-            to,
-            deadline
-        );
+        console.log("done");
+        // (amountA, amountB) = removeLiquidity(
+        //     tokenA,
+        //     tokenB,
+        //     liquidity,
+        //     amountAMin,
+        //     amountBMin,
+        //     to,
+        //     deadline
+        // );
     }
 
     function removeLiquidityETHWithPermit(

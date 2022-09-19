@@ -127,9 +127,22 @@ contract UniswapV2Pair is UniswapV2ERC20 {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         if (_totalSupply == 0) {
             liquidity = Math.sqrt(amount0.mul(amount1)).sub(MINIMUM_LIQUIDITY);
+            // console.log("totalSupply",_totalSupply);
+            // console.log("balance0",balance0);
+            // console.log("balance1",balance1);
+            // console.log("amount0",amount0);
+            // console.log("amount1",amount1);
+            // console.log("liquidity",liquidity);
+            
+            
+            
            _mint(address(0), MINIMUM_LIQUIDITY); // permanently lock the first MINIMUM_LIQUIDITY tokens
         } else {
+            console.log("totalSupply",_totalSupply);
+            console.log("reserve0",_reserve0);
+            console.log("balance0",balance0);
             liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
+            console.log("liquidity",liquidity);
         }
         require(liquidity > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
