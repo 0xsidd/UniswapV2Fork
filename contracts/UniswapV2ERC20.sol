@@ -1,16 +1,14 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+// SPDX-License-Identifier: GPL-3.0
 
-import './interfaces/IUniswapV2ERC20.sol';
+pragma solidity =0.6.12;
+
 import './libraries/SafeMath.sol';
-import "hardhat/console.sol";
-
 
 contract UniswapV2ERC20 {
-    using SafeMath for uint;
+    using SafeMathUniswap for uint;
 
-    string public constant name = 'Uniswap V2';
-    string public constant symbol = 'UNI-V2';
+    string public constant name = 'SushiSwap LP Token';
+    string public constant symbol = 'SLP';
     uint8 public constant decimals = 18;
     uint  public totalSupply;
     mapping(address => uint) public balanceOf;
@@ -24,7 +22,7 @@ contract UniswapV2ERC20 {
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
 
-    constructor() {
+    constructor() public {
         uint chainId;
         assembly {
             chainId := chainid()
@@ -74,7 +72,7 @@ contract UniswapV2ERC20 {
     }
 
     function transferFrom(address from, address to, uint value) external returns (bool) {
-        if (allowance[from][msg.sender] != type(uint).max) {
+        if (allowance[from][msg.sender] != uint(-1)) {
             allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
         }
         _transfer(from, to, value);
@@ -90,13 +88,7 @@ contract UniswapV2ERC20 {
                 keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
             )
         );
-
-        
         address recoveredAddress = ecrecover(digest, v, r, s);
-        // console.log("DIGEST: ",digest);
-        // console.log("recovered address",recoveredAddress);
-        // console.log("owner",owner);
-        // console.log("chainId",block.chainid);
         require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }
